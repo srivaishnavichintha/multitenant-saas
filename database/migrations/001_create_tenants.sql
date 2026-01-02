@@ -1,7 +1,21 @@
-CREATE TYPE tenant_status AS ENUM ('active', 'suspended', 'trial');
-CREATE TYPE subscription_plan AS ENUM ('free', 'pro', 'enterprise');
+-- Create ENUM types safely (idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type WHERE typname = 'tenant_status'
+  ) THEN
+    CREATE TYPE tenant_status AS ENUM ('active', 'suspended', 'trial');
+  END IF;
 
-CREATE TABLE tenants (
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type WHERE typname = 'subscription_plan'
+  ) THEN
+    CREATE TYPE subscription_plan AS ENUM ('free', 'pro', 'enterprise');
+  END IF;
+END$$;
+
+-- Create tenants table
+CREATE TABLE IF NOT EXISTS tenants (
   id UUID PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   subdomain VARCHAR(100) UNIQUE NOT NULL,
