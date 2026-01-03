@@ -43,20 +43,24 @@ router.post(
 
     const taskId = uuidv4();
 
-    await pool.query(
-      `INSERT INTO tasks (id, project_id, tenant_id, title, description, status, priority, assigned_to, due_date)
-       VALUES ($1,$2,$3,$4,$5,'todo',$6,$7,$8)`,
-      [
-        taskId,
-        req.params.projectId,
-        req.tenantId,
-        title,
-        description,
-        priority,
-        assignedTo || null,
-        dueDate || null
-      ]
-    );
+   const insertRes = await pool.query(
+  `INSERT INTO tasks (
+     id, project_id, tenant_id, title, description, status,
+     priority, assigned_to, due_date
+   )
+   VALUES ($1,$2,$3,$4,$5,'todo',$6,$7,$8)
+   RETURNING id, title, status, priority`,
+  [
+    taskId,
+    req.params.projectId,
+    req.tenantId,
+    title.trim(),
+    description,
+    priority,
+    assignedTo || null,
+    dueDate || null
+  ]
+);
 
     await auditLog({
       tenantId: req.tenantId,
@@ -67,7 +71,10 @@ router.post(
       ip: req.ip
     });
 
-    res.status(201).json({ success: true, data: { id: taskId } });
+    res.status(201).json({
+  success: true,
+  data: insertRes.rows[0]
+});
   }
 );
 

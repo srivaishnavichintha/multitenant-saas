@@ -18,10 +18,10 @@ const start = async () => {
     await pool.query("SELECT 1");
 
     console.log("Running migrations...");
-    await runSQLFiles("/app/database/migrations");
+    await runSQLFiles("/database/migrations");
 
     console.log("Running seed data...");
-    await runSQLFiles("/app/database/seeds");
+    await runSQLFiles("/database/seeds");
 
     console.log("Starting server...");
     require("./src/server");

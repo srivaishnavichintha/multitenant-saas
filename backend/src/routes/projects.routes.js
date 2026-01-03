@@ -83,6 +83,40 @@ router.get(
   }
 );
 
+
+/**
+ * GET SINGLE PROJECT
+ * GET /api/projects/:projectId
+ */
+router.get(
+  "/projects/:projectId",
+  auth,
+  tenantGuard,
+  async (req, res) => {
+    const projectRes = await pool.query(
+      `SELECT p.id, p.name, p.description, p.status, p.created_at,
+              u.full_name AS created_by
+       FROM projects p
+       JOIN users u ON u.id = p.created_by
+       WHERE p.id=$1 AND p.tenant_id=$2`,
+      [req.params.projectId, req.tenantId]
+    );
+
+    if (!projectRes.rows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: projectRes.rows[0]
+    });
+  }
+);
+
+
 /**
  * UPDATE PROJECT
  * PUT /api/projects/:projectId
